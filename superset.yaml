@@ -1,45 +1,42 @@
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
-  name: clickhouse-db
+  name: superset-app
 spec:
-  serviceName: "clickhouse-service"
   replicas: 1
   selector:
     matchLabels:
-      app: clickhouse-db
+      app: superset-app
   template:
     metadata:
       labels:
-        app: clickhouse-db
+        app: superset-app
     spec:
+      initContainers:
+      - name: init-clickhouse
+        image: apache/superset
+        command: ['sh', '-c', 'pip install clickhouse-sqlalchemy']
       containers:
-      - name: clickhouse-container
-        image: yandex/clickhouse-server:latest
+      - name: superset-container
+        image: apache/superset:latest
         ports:
-        - containerPort: 9000
-        volumeMounts:
-        - name: clickhouse-data
-          mountPath: /var/lib/clickhouse
-  volumeClaimTemplates:
-  - metadata:
-      name: clickhouse-data
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 10Gi
+        - containerPort: 8088
+        env:
+        - name: SUPERSET_SECRET_KEY
+          value: megh6046
+        command: ["/bin/sh"]
+        args: ["-c", "superset db upgrade && superset init && gunicorn -w 2 --timeout 60 -b 0.0.0.0:8088 --limit-request-line 0 --limit-request-field_size 0 'superset.app:create_app()'"]
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: clickhouse-service
+  name: superset-service
   namespace: default
 spec:
-  type: NodePort
   selector:
-    app: clickhouse-db
+    app: superset-app
   ports:
-    - port: 9000
-      targetPort: 9000
-      nodePort: 30001
+    - port: 8088
+      targetPort: 8088
+      nodePort: 30000
+  type: NodePort
