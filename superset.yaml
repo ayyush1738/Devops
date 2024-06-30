@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: superset
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: superset
+  template:
+    metadata:
+      labels:
+        app: superset
+    spec:
+      initContainers:
+      - name: init-clickhouse
+        image: apache/superset
+        command: ['sh', '-c', 'pip install clickhouse-sqlalchemy']
+      containers:
+      - name: superset
+        image: apache/superset:latest
+        ports:
+        - containerPort: 8088
+        env:
+        - name: SUPERSET_SECRET_KEY
+          value: megh6046
+        command: ["/bin/sh"]
+        args: ["-c", "superset db upgrade && superset init && gunicorn -w 2 --timeout 60 -b 0.0.0.0:8088 --limit-request-line 0 --limit-request-field_size 0 'superset.app:create_app()'"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: superset
+  namespace: default
+spec:
+  selector:
+    app: superset
+  ports:
+    - port: 8088
+      targetPort: 8088
+      nodePort: 30000
+      nodePort:
+  type: NodePort
