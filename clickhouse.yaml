@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: clickhouse
+  name: clickhouse-db
 spec:
-  serviceName: "clickhouse"
+  serviceName: "clickhouse-service"
   replicas: 1
   selector:
     matchLabels:
-      app: clickhouse
+      app: clickhouse-db
   template:
     metadata:
       labels:
-        app: clickhouse
+        app: clickhouse-db
     spec:
       containers:
-      - name: clickhouse
+      - name: clickhouse-container
         image: yandex/clickhouse-server:latest
         ports:
         - containerPort: 9000
@@ -33,15 +33,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: clickhouse
+  name: clickhouse-service
   namespace: default
 spec:
-type: NodePort
+  type: NodePort
   selector:
-    app: clickhouse
+    app: clickhouse-db
   ports:
     - port: 9000
       targetPort: 9000
       nodePort: 30001
-
-
