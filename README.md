@@ -2,20 +2,19 @@
 
 
 
-1. Deploy superset deployment with the below command
+1. Deploy superset 
 
 ```
 kubectl apply -f superset.yaml
 ```
 
-2. Get the URL for the superset with the below command
-
+2. Use minikube to get the superset url
 ```
 minikube service superset --url
 ```
 3. Paste the URL in the browser
 
-4. Get the superset pod name with the below command
+4. Get the superset pod name 
 ```
 kubectl get pods
 ```
