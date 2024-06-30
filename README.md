@@ -1,4 +1,5 @@
-# Superset + Clickhouse
+# Deployment for Clickhouse & Superset
+
 
 
 1. Deploy superset deployment with the below command
