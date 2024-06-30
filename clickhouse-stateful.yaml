@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: clickhouse
+spec:
+  serviceName: "clickhouse"  # Service name for accessing the StatefulSet
+  replicas: 1  # Number of replicas (instances) of the StatefulSet
+  selector:
+    matchLabels:
+      app: clickhouse  # Match labels for selecting pods belonging to this StatefulSet
+  template:
+    metadata:
+      labels:
+        app: clickhouse  # Labels applied to pods created by this StatefulSet
+    spec:
+      containers:
+      - name: clickhouse
+        image: clickhouse/clickhouse-server:latest  # Docker image for ClickHouse server
+        ports:
+        - containerPort: 8123  # Port for ClickHouse HTTP interface
+        - containerPort: 9000  # Port for ClickHouse client-server communication
+        - containerPort: 9001  # Port for ClickHouse replication (if applicable)
+        volumeMounts:
+        - name: clickhouse-data
+          mountPath: /var/lib/clickhouse  # Mount path for ClickHouse data storage
+  volumeClaimTemplates:
+  - metadata:
+      name: clickhouse-data
+    spec:
+      accessModes: ["ReadWriteOnce"]  # Access mode for the persistent volume claim
+      resources:
+        requests:
+          storage: 10Gi  # Requested storage size for ClickHouse data
